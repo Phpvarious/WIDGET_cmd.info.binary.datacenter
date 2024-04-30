@@ -3,7 +3,7 @@
     Widget name : cmd.info.binary.datacenter
     Author : Phpvarious
     Inspiration : https://codepen.io/mi2oon/pen/ZXWZdV
-    Last Uptade : 2024/04/30 08h45 - Phpvarious
+    Last Uptade : 2024/04/26 11h45 - Phpvarious
   -->
   <div class="content-sm">
     <div class="server-#uid# #history#" data-type="info">
@@ -11,7 +11,7 @@
       <ul class="server-details-#uid#">
         <li><span>{{Hostname}}:</span><span class="data-#uid#">#name#</span></li>
         <li><span>{{Status}}:</span><span class="data-#uid# signal-#uid#"></span></li>
-        <li><span>{{Address}}:</span><span class="data-#uid# ip-#uid#">#ip#</span></li>
+        <li><span>{{Address}}:</span><span class="data-#uid#">#ip#</span></li>
         <li><span>{{Time}}:</span><span class="data-#uid# timeCmd" data-type="info"></span></li>
       </ul>
     </div>
@@ -19,14 +19,9 @@
   <template>
     <div>time : duration|date ({{Affiche durée ou date de la valeur}})</div>
     <div>blink : mettre 0 pour désactivé l'effet de clignotement.</div>
+    <div>ip : Affiche l'ip de l'équipement.</div>
     <div>width : Largeur du widget (mini 200 | défaut : 300)</div>
     <div>coloredIconOn : Colorer l'icone même si ONLINE.(Colorer : 1 | défaut : 0)</div>
-    <div> --------------- IP ----------------</div>
-    <div>[ ! ] 2 possibilités de récupérer l'adresse ip à afficher sur le widget.</div>
-    <div>[ ! ] 'ip' est prioritaire sur 'id_ip'.</div>
-    <div>&nbsp;</div>
-    <div>id_ip : Id de l'adresse IP à afficher.</div>
-    <div>ip : Adresse IP à afficher. (Ex: 192.168.152.147)</div>
     <div> --------------- TRADUCTIONS ----------------</div>
     <div>trad_hostname : Remplacement du texte "hostname"</div>
     <div>trad_status : Remplacement du texte "status"</div>
@@ -38,30 +33,11 @@
   <script>
     var offline_#uid# = 'OFFLINE'
     var online_#uid# = 'ONLINE'
-    var ip_#uid# = '#ip#'
-    
     if (is_object(cmd = document.querySelector('.cmd[data-cmd_uid="#uid#"]'))) {
       if ('#blink#' == '0') cmd.setAttribute('data-blink', 0)
       else cmd.setAttribute('data-blink', 1)
       if ('#coloredIconOn#' == '1') cmd.setAttribute('data-colorediconon', 1)
-      
-      if(is_numeric('#id_ip#') && '#ip#' == '#'+'ip#'){
-        jeedom.cmd.execute({
-          id : '#id_ip#',
-          async: false,
-          noCache: true,
-          error: function(error) {
-            console.log('| | ERREUR jeedom.cmd.execute(id_ip) !!!')
-          },
-          success: function (cmdInfo) {
-            ip_#uid# = cmdInfo
-          }
-        })
-      }
-      cmd.querySelector('.ip-#uid#').innerHTML = ip_#uid#
-      if (ip_#uid# == '#' + 'ip#') cmd.querySelector('.server-details-#uid# li:nth-child(3)').style.display='none'
-      
-      
+      if ('#ip#' == '#' + 'ip#') cmd.querySelector('.server-details-#uid# li:nth-child(3)').style.display='none'
       if ('#time#' !== 'duration' && '#time#' !== 'date')  cmd.querySelector('.server-details-#uid# li:nth-child(4)').style.display='none'
       if ('#trad_hostname#' != '#' + 'trad_hostname#') cmd.querySelector('.server-details-#uid# li:first-child span:first-child').innerHTML = '#trad_hostname#' + ':'
       if ('#trad_status#' != '#' + 'trad_status#') cmd.querySelector('.server-details-#uid# li:nth-child(2) span:first-child').innerHTML = '#trad_status#' + ':'
