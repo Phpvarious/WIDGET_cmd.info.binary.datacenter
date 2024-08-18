@@ -3,7 +3,7 @@
     Widget name : cmd.info.binary.datacenter
     Author : Phpvarious
     Inspiration : https://codepen.io/mi2oon/pen/ZXWZdV
-    Last Uptade : 2024/04/30 08h45 - Phpvarious
+    Last Uptade : 2024/08/17 11h40 - Phpvarious - (ajout latence)
   -->
   <div class="content-sm">
     <div class="server-#uid# #history#" data-type="info">
@@ -12,7 +12,9 @@
         <li><span>{{Hostname}}:</span><span class="data-#uid#">#name#</span></li>
         <li><span>{{Status}}:</span><span class="data-#uid# signal-#uid#"></span></li>
         <li><span>{{Address}}:</span><span class="data-#uid# ip-#uid#">#ip#</span></li>
+        <li><span>{{Latency}}:</span><span class="data-#uid# latency-#uid#">ffff</span></li>
         <li><span>{{Time}}:</span><span class="data-#uid# timeCmd" data-type="info"></span></li>
+        
       </ul>
     </div>
   </div>
@@ -21,6 +23,7 @@
     <div>blink : mettre 0 pour désactivé l'effet de clignotement.</div>
     <div>width : Largeur du widget (mini 200 | défaut : 300)</div>
     <div>coloredIconOn : Colorer l'icone même si ONLINE.(Colorer : 1 | défaut : 0)</div>
+    <div>id_latency : Id de la latence à afficher.</div>
     <div> --------------- IP ----------------</div>
     <div>[ ! ] 2 possibilités de récupérer l'adresse ip à afficher sur le widget.</div>
     <div>[ ! ] 'ip' est prioritaire sur 'id_ip'.</div>
@@ -31,6 +34,7 @@
     <div>trad_hostname : Remplacement du texte "hostname"</div>
     <div>trad_status : Remplacement du texte "status"</div>
     <div>trad_address : Remplacement du texte "address"</div>
+    <div>trad_latency : Remplacement du texte "latency"</div>
     <div>trad_offline : Remplacement du texte "OFFLINE"</div>
     <div>trad_online : Remplacement du texte "ONLINE"</div>
     <div>trad_time : Remplacement du texte "Time"</div>
@@ -39,12 +43,49 @@
     var offline_#uid# = 'OFFLINE'
     var online_#uid# = 'ONLINE'
     var ip_#uid# = '#ip#'
+    var latency_#uid# = '#id_latency#'
+    var latency_unit_#uid# = 'ms'
     
     if (is_object(cmd = document.querySelector('.cmd[data-cmd_uid="#uid#"]'))) {
       if ('#blink#' == '0') cmd.setAttribute('data-blink', 0)
       else cmd.setAttribute('data-blink', 1)
       if ('#coloredIconOn#' == '1') cmd.setAttribute('data-colorediconon', 1)
-      
+      if(is_numeric('#id_latency#')){
+        jeedom.cmd.execute({
+          id : '#id_latency#',
+          async: false,
+          noCache: true,
+          error: function(error) {
+            console.log('| | ERREUR jeedom.cmd.execute(id_latency) !!!')
+            latency_#uid# = '#' + 'id_latency#'
+          },
+          success: function (value_latency) {
+            
+            jeedom.cmd.byId({
+              id : '#id_latency#',
+              async: false,
+              noCache: true,
+              error: function(error) {
+                console.log('| | ERREUR jeedom.cmd.byId(id_latency) !!!')
+              },
+              success: function (latency_unit) {
+                latency_unit_#uid# = latency_unit.unite
+                
+              }
+            })
+            latency_#uid# = value_latency + latency_unit_#uid#
+            jeedom.cmd.addUpdateFunction('#id_latency#', function(_options) {
+              if (is_object(cmd = document.querySelector('.cmd[data-cmd_uid="#uid#"]'))) {
+                if (_options.value != undefined) 
+                {
+                  cmd.querySelector('.latency-#uid#').innerHTML = _options.value + latency_unit_#uid#
+                }
+              }
+            })
+          }
+        })
+      }
+      cmd.querySelector('.latency-#uid#').innerHTML = latency_#uid#
       if(is_numeric('#id_ip#') && '#ip#' == '#'+'ip#'){
         jeedom.cmd.execute({
           id : '#id_ip#',
@@ -52,6 +93,7 @@
           noCache: true,
           error: function(error) {
             console.log('| | ERREUR jeedom.cmd.execute(id_ip) !!!')
+            ip_#uid# = '#' + 'ip#'
           },
           success: function (cmdInfo) {
             ip_#uid# = cmdInfo
@@ -60,13 +102,15 @@
       }
       cmd.querySelector('.ip-#uid#').innerHTML = ip_#uid#
       if (ip_#uid# == '#' + 'ip#') cmd.querySelector('.server-details-#uid# li:nth-child(3)').style.display='none'
+      if (latency_#uid# == '#' + 'id_latency#') cmd.querySelector('.server-details-#uid# li:nth-child(4)').style.display='none'
       
       
-      if ('#time#' !== 'duration' && '#time#' !== 'date')  cmd.querySelector('.server-details-#uid# li:nth-child(4)').style.display='none'
+      if ('#time#' !== 'duration' && '#time#' !== 'date')  cmd.querySelector('.server-details-#uid# li:nth-child(5)').style.display='none'
       if ('#trad_hostname#' != '#' + 'trad_hostname#') cmd.querySelector('.server-details-#uid# li:first-child span:first-child').innerHTML = '#trad_hostname#' + ':'
       if ('#trad_status#' != '#' + 'trad_status#') cmd.querySelector('.server-details-#uid# li:nth-child(2) span:first-child').innerHTML = '#trad_status#' + ':'
       if ('#trad_address#' != '#' + 'trad_address#') cmd.querySelector('.server-details-#uid# li:nth-child(3) span:first-child').innerHTML = '#trad_address#' + ':'
-      if ('#trad_time#' != '#' + 'trad_time#') cmd.querySelector('.server-details-#uid# li:nth-child(4) span:first-child').innerHTML = '#trad_time#' + ':'
+      if ('#trad_latency#' != '#' + 'trad_latency#') cmd.querySelector('.server-details-#uid# li:nth-child(4) span:first-child').innerHTML = '#trad_latency#' + ':'
+      if ('#trad_time#' != '#' + 'trad_time#') cmd.querySelector('.server-details-#uid# li:nth-child(5) span:first-child').innerHTML = '#trad_time#' + ':'
       if ('#trad_offline#' != '#' + 'trad_offline#') offline_#uid# = '#trad_offline#'
       if ('#trad_online#' != '#' + 'trad_online#') online_#uid# = '#trad_online#'
       if (is_numeric('#width#')) document.documentElement.style.setProperty('--width-#uid#', '#width#px')
@@ -172,7 +216,7 @@
       margin-top: -0.2rem;
       vertical-align: middle;
     }
-    .server-details-#uid# li:nth-child(3) .data-#uid#, .server-details-#uid# li:nth-child(4) .data-#uid# {
+    .server-details-#uid# li:nth-child(3) .data-#uid#, .server-details-#uid# li:nth-child(4) .data-#uid#, .server-details-#uid# li:nth-child(5) .data-#uid# {
       font-weight: normal;
       color: var(--defautColor-#uid#);
     }
